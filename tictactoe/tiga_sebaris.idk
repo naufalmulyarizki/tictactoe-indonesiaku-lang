@@ -1,0 +1,209 @@
+# tiga_sebaris.idk - Tic-Tac-Toe melawan komputer dalam Bahasa Indonesiaku
+#
+# Kamu = X, Komputer = O. Pilih kotak dengan angka 1-9:
+#    1 | 2 | 3
+#    4 | 5 | 6
+#    7 | 8 | 9
+# Level "sulit" memakai algoritma minimax: komputer tidak bisa dikalahkan.
+
+GARIS_MENANG = [
+    [0, 1, 2], [3, 4, 5], [6, 7, 8],
+    [0, 3, 6], [1, 4, 7], [2, 5, 8],
+    [0, 4, 8], [2, 4, 6]
+]
+
+fungsi gambar(papan) {
+    cetak()
+    untuk r dalam rentang(3) {
+        baris = ""
+        untuk k dalam rentang(3) {
+            i = r * 3 + k
+            # Kotak kosong menampilkan nomornya sebagai petunjuk
+            jika papan[i] == " " {
+                isi = ke_teks(i + 1)
+            } selain {
+                isi = papan[i]
+            }
+            baris = baris + " " + isi + " "
+            jika k < 2 {
+                baris = baris + "|"
+            }
+        }
+        cetak(baris)
+        jika r < 2 {
+            cetak("---+---+---")
+        }
+    }
+    cetak()
+}
+
+# Kembalikan "X"/"O" bila ada pemenang, "seri" bila penuh, "" bila lanjut.
+fungsi pemenang(papan) {
+    untuk g dalam GARIS_MENANG {
+        a = papan[g[0]]
+        jika a != " " dan a == papan[g[1]] dan a == papan[g[2]] {
+            kembalikan a
+        }
+    }
+    jika " " tidak dalam papan {
+        kembalikan "seri"
+    }
+    kembalikan ""
+}
+
+fungsi kotak_kosong(papan) {
+    hasil = []
+    untuk i dalam rentang(9) {
+        jika papan[i] == " " {
+            tambah(hasil, i)
+        }
+    }
+    kembalikan hasil
+}
+
+# Minimax: skor dari sudut pandang komputer (O). `kedalaman` membuat
+# komputer memilih menang secepatnya dan kalah selambat mungkin.
+fungsi minimax(papan, giliran_o, kedalaman) {
+    h = pemenang(papan)
+    jika h == "O" {
+        kembalikan 10 - kedalaman
+    }
+    jika h == "X" {
+        kembalikan kedalaman - 10
+    }
+    jika h == "seri" {
+        kembalikan 0
+    }
+
+    jika giliran_o {
+        terbaik = -100
+    } selain {
+        terbaik = 100
+    }
+    untuk i dalam kotak_kosong(papan) {
+        jika giliran_o {
+            papan[i] = "O"
+        } selain {
+            papan[i] = "X"
+        }
+        skor = minimax(papan, tidak giliran_o, kedalaman + 1)
+        papan[i] = " "
+        jika giliran_o {
+            terbaik = max(terbaik, skor)
+        } selain {
+            terbaik = min(terbaik, skor)
+        }
+    }
+    kembalikan terbaik
+}
+
+fungsi langkah_komputer(papan, level) {
+    pilihan = kotak_kosong(papan)
+    jika level == "mudah" {
+        kembalikan pilihan[acak_bulat(0, panjang(pilihan) - 1)]
+    }
+    terbaik_skor = -100
+    terbaik_i = pilihan[0]
+    untuk i dalam pilihan {
+        papan[i] = "O"
+        skor = minimax(papan, salah, 1)
+        papan[i] = " "
+        jika skor > terbaik_skor {
+            terbaik_skor = skor
+            terbaik_i = i
+        }
+    }
+    kembalikan terbaik_i
+}
+
+# Minta nomor kotak 1-9 yang masih kosong; kembalikan indeks 0-8 atau -1 untuk keluar.
+fungsi langkah_pemain(papan) {
+    selagi benar {
+        masukan = ganti(huruf_kecil(input("Pilih kotak (1-9, q=keluar): ")), " ", "")
+        jika masukan == "q" {
+            kembalikan -1
+        }
+        untuk i dalam rentang(9) {
+            jika masukan == ke_teks(i + 1) {
+                jika papan[i] == " " {
+                    kembalikan i
+                }
+                cetak("Kotak itu sudah terisi, pilih yang lain.")
+            }
+        }
+        cetak("Masukan tidak valid.")
+    }
+}
+
+fungsi pilih_level() {
+    selagi benar {
+        p = ganti(huruf_kecil(input("Level (1 = mudah, 2 = sulit): ")), " ", "")
+        jika p == "1" {
+            kembalikan "mudah"
+        }
+        jika p == "2" {
+            kembalikan "sulit"
+        }
+        cetak("Ketik 1 atau 2.")
+    }
+}
+
+# Mainkan satu ronde; kembalikan "X", "O", "seri", atau "keluar".
+fungsi main_ronde(level, pemain_duluan) {
+    papan = [" ", " ", " ", " ", " ", " ", " ", " ", " "]
+    giliran_pemain = pemain_duluan
+    selagi pemenang(papan) == "" {
+        jika giliran_pemain {
+            gambar(papan)
+            i = langkah_pemain(papan)
+            jika i == -1 {
+                kembalikan "keluar"
+            }
+            papan[i] = "X"
+        } selain {
+            i = langkah_komputer(papan, level)
+            papan[i] = "O"
+            cetak(f"Komputer memilih kotak {i + 1}.")
+        }
+        giliran_pemain = tidak giliran_pemain
+    }
+    gambar(papan)
+    kembalikan pemenang(papan)
+}
+
+# --- Program utama ---
+cetak("=================================")
+cetak("   TIGA SEBARIS - INDONESIAKU")
+cetak("   Kamu = X   |   Komputer = O")
+cetak("=================================")
+
+level = pilih_level()
+skor = {"menang": 0, "kalah": 0, "seri": 0}
+pemain_duluan = benar
+
+selagi benar {
+    hasil = main_ronde(level, pemain_duluan)
+    jika hasil == "keluar" {
+        hentikan
+    }
+    jika hasil == "X" {
+        cetak("Selamat, kamu MENANG!")
+        skor["menang"] = skor["menang"] + 1
+    } jika_lain hasil == "O" {
+        cetak("Komputer menang!")
+        skor["kalah"] = skor["kalah"] + 1
+    } selain {
+        cetak("Hasilnya SERI.")
+        skor["seri"] = skor["seri"] + 1
+    }
+    cetak(f"Skor -> Menang: {skor["menang"]}  Kalah: {skor["kalah"]}  Seri: {skor["seri"]}")
+
+    lagi = huruf_kecil(input("Main lagi? (y/n): "))
+    jika lagi != "y" {
+        hentikan
+    }
+    # Bergantian siapa yang jalan duluan tiap ronde
+    pemain_duluan = tidak pemain_duluan
+}
+
+cetak("Terima kasih sudah bermain!")
