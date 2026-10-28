@@ -153,4 +153,4 @@ Pull request dan issue sangat diterima.
 
 Indonesiaku adalah proyek bahasa pemrograman independen karya
 [teguh02](https://github.com/teguh02/Indonesiaku-Lang). Dokumentasi dan
-playground tersedia di [idk-lang.web.id](https://idk-lang.web.id).
+playground tersedia di [idk-lang.web.id](https://idk-lang.web.id)
